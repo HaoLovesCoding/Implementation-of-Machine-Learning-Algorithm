@@ -1,0 +1,71 @@
+import Jama.Matrix;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class LinearRegressionTest {
+    public static final double alpha = 0.001; // Learning rate alpha
+    /*** Fill in other  constant variables here***/
+    
+    public static void linearRegression() throws Exception {
+        Matrix trainingData = MatrixData.getDataMatrix("data\\linear_regression\\linear-regression-train.csv");
+        // getMatrix(Initial row index, Final row index, Initial column index, Final column index)
+        Matrix train_x = trainingData.getMatrix(0, trainingData.getRowDimension()-1, 0, trainingData.getColumnDimension()-2);
+        train_x=matrix_combine(train_x);
+        Matrix train_y = trainingData.getMatrix(0, trainingData.getRowDimension()-1, trainingData.getColumnDimension()-1, trainingData.getColumnDimension()-1);
+
+        Matrix testData = MatrixData.getDataMatrix("data\\linear_regression\\linear-regression-test.csv");
+        Matrix test_x = testData.getMatrix(0, testData.getRowDimension() - 1, 0, testData.getColumnDimension() - 2);
+        
+        
+        /* Linear Regression */
+        /* 2 step process */
+        // 1) find beta
+        Matrix beta = getBeta(train_x, train_y);
+        // 2) predict y for test data using beta calculated from train data
+        
+        //Matrix predictedY = test_x.times(beta);
+
+        // Output
+        //printOutput(predictedY);
+    }
+    
+	static public Matrix matrix_combine(Matrix m){		
+		double[][] valx=m.getArray();
+		int dimension1=valx.length;
+		int dimension2=valx[0].length;
+		double[][] transform=new double[dimension1][dimension2+1];
+		for(int i=0;i<dimension1;i++){
+			for(int j=0;j<dimension2+1;j++){
+				if(j!=0){
+					transform[i][j]=valx[i][j-1];
+				}
+				else{
+					transform[i][j]=1;
+				}
+			}
+		}
+		Matrix transformM=new Matrix(transform);
+		return transformM;
+	}
+    
+    public static Matrix getBeta(Matrix X, Matrix Y){
+    	Matrix m=null;
+    	return m;
+    }
+    
+    public static void printOutput(Matrix predictedY) throws IOException {
+        FileWriter fStream = new FileWriter("output\\linear_regression\\linear-regression-output.txt");     // Output File
+        BufferedWriter out = new BufferedWriter(fStream);
+        for (int row =0; row<predictedY.getRowDimension(); row++) {
+            out.write(String.valueOf(predictedY.get(row, 0)));
+            out.newLine();
+        }
+        out.close();
+    }
+    
+    public static void main() throws Exception{
+    	linearRegression();
+    }
+}

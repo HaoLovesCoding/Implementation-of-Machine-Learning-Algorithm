@@ -1,0 +1,106 @@
+import java.io.*;
+import java.util.Enumeration;
+
+import weka.core.Attribute;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.NoSupportForMissingValuesException;
+import weka.core.Utils;
+import Utility.Utility;
+
+public class DecisionTree {
+    //The node's successors.
+    private DecisionTree[] m_Successors;
+    //Attribute used for splitting.
+    private Attribute m_Attribute;
+    //Class value if node is leaf.
+    private double m_ClassValue;
+    //Class distribution if node is leaf.
+    private double[] m_Distribution;
+    // Class attribute of data set.
+    private Attribute m_ClassAttribute;
+    
+    public DecisionTree() {
+    }
+    
+    public static void decisionTree() throws Exception {
+        BufferedReader file = Utility.readFile("/Users/HaoWu/Documents/Code/CS249_17S_Sun/HW1_Programming/DataMiningAlgorithms/data/decision_tree/weather-nominal.arff");
+        Instances data = new Instances(file);
+        int cIdx=data.numAttributes()-1;// The data has four attributes
+        System.out.println(cIdx);// set the attributes
+        data.setClassIndex(cIdx);
+        buildClassifier(data);
+        //printOutput(data);
+    }   
+
+    public void buildClassifier(Instances data) throws Exception {
+        data = new Instances(data);
+        this.makeTree(data);
+    }   
+    
+    private void makeTree(Instances data) throws Exception {
+    	if(data.numInstances() == 0) {
+    		this.m_Attribute = null;
+    		this.m_ClassValue = Instance.missingValue();
+    		this.m_Distribution = new double[data.numClasses()];
+    	} else {
+    		double[] infoGains = new double[data.numAttributes()];// infoGains is the array to store infoGain of different attributes
+
+    		Attribute splitData;
+    		for(Enumeration attEnum = data.enumerateAttributes(); attEnum.hasMoreElements(); infoGains[splitData.index()] = this.computeInfoGain(data, splitData)) {
+    			splitData = (Attribute)attEnum.nextElement();
+    		}
+
+    		this.m_Attribute = data.attribute(Utils.maxIndex(infoGains));// ? set the current attribute to the majority
+    		if(Utils.eq(infoGains[this.m_Attribute.index()], 0.0D)) {
+    			this.m_Attribute = null;
+    			this.m_Distribution = new double[data.numClasses()];
+
+    			Instance j;
+    			for(Enumeration var6 = data.enumerateInstances(); var6.hasMoreElements(); ++this.m_Distribution[(int)j.classValue()]) {
+    				j = (Instance)var6.nextElement();
+    			}
+
+    			Utils.normalize(this.m_Distribution);
+    			this.m_ClassValue = (double)Utils.maxIndex(this.m_Distribution);
+    			this.m_ClassAttribute = data.classAttribute();
+    		} 
+    		else {
+    			Instances[] var7 = this.splitData(data, this.m_Attribute);
+    			this.m_Successors = new DecisionTree[this.m_Attribute.numValues()];
+
+    			for(int var8 = 0; var8 < this.m_Attribute.numValues(); ++var8) {
+    				this.m_Successors[var8] = new DecisionTree();
+    				this.m_Successors[var8].makeTree(var7[var8]);
+    			}
+    		}
+    	}
+    }
+    
+    //Classifies a given test instance using the decision tree.
+    public double classifyInstance(Instance instance) throws NoSupportForMissingValuesException {
+        if(instance.hasMissingValue()) {
+            throw new NoSupportForMissingValuesException("DecisionTree: no missing values, please.");
+        } else {
+            return this.m_Attribute == null?this.m_ClassValue:this.m_Successors[(int)instance.value(this.m_Attribute)].classifyInstance(instance);// DFS to find the 
+        }
+    }
+    
+    private void printOutput(Instances data) throws IOException, NoSupportForMissingValuesException {
+        FileWriter fStream = new FileWriter("output\\decision_tree\\decision-tree-output.txt");     // Output File
+        BufferedWriter out = new BufferedWriter(fStream);
+
+        for(int index =0; index<data.numInstances();index++) {
+            Instance testRowInstance = data.instance(index);
+            double prediction =classifyInstance(testRowInstance);
+            out.write(data.classAttribute().value((int) prediction));
+            out.newLine();
+        }
+        out.close();
+    }    
+    
+    public static void main(String[] args) throws Exception {
+    	System.out.println("Hello");
+    	decisionTree();
+    }
+}

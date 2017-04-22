@@ -1,0 +1,95 @@
+import Jama.Matrix;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Random;
+
+public class Jama_warm_up {
+	static public void print_myArray(Matrix A){
+		int col=A.getColumnDimension();
+		int row=A.getRowDimension();
+		for(int i=0;i<col;i++){
+			for(int j=0;j<row;j++){
+				System.out.println(i);
+				A.print(i, j);
+			}
+		}
+	}
+	static public void test(){
+		PrintWriter my_writer=new PrintWriter(System.out); 
+		double[][] val1 = {{1.,3.},{4.,5.}};
+		double[][] val2 = {{6.,2.},{1.,3.}};
+		Matrix A=new Matrix(val1);
+		Matrix B=new Matrix(val2);
+		Matrix C=A.times(B);
+		A.print(40, 1);// The first argument is to print out the the column width, 1 is the precision
+		Matrix D=C.transpose();
+		Matrix E=C.inverse();
+		Matrix Test1=A.times(B).times(C);
+		Matrix Test2_0=A.times(B);
+		Matrix Test2=Test2_0.times(C);
+		Test1.print(4,1);
+		Test2.print(4,1);
+		//A.print(my_writer,1,1);
+		//System.out.println(A.get(0,1));
+	}
+	
+	static public void closed_form_linear_regression(){
+		double[][] valx={{1., 3.},{1.,5.}};
+		double[][] valy={{7.},{11.}};
+		Matrix X=new Matrix(valx);
+		Matrix Y=new Matrix(valy);
+		Matrix Beta= (X.transpose().times(X)).inverse().times(X.transpose()).times(Y);
+		Beta.print(4, 1);
+	}
+	
+	static public Matrix array_combine(){
+		double[][] valx={{1., 3., 6.},{1.,5.,8.}};
+		int dimension1=valx.length;
+		int dimension2=valx[0].length;
+		double[][] transform=new double[dimension1][dimension2+1];
+		for(int i=0;i<dimension1;i++){
+			for(int j=0;j<dimension2+1;j++){
+				if(j!=0){
+					transform[i][j]=valx[i][j-1];
+				}
+				else{
+					transform[i][j]=1;
+				}
+			}
+		}
+		Matrix transformM=new Matrix(transform);
+		transformM.print(4,1);
+		return transformM;
+	}
+	
+	public static ArrayList reservior_sampling(){
+		double[] reservior={1,2,3,4,5,6,7,8,9,10};
+		int n=3;// n will be the chosen sample size
+		int count=0;
+		ArrayList l=new ArrayList();
+		Random rand = new Random();
+		for(int i=0;i<reservior.length;i++){
+			if(count<n){
+				count++;
+				l.add(reservior[i]);
+			}
+			else{
+				count++;
+				if( (rand.nextInt(count)+1) ==count){
+					int replace=rand.nextInt(l.size());
+					l.set(replace,reservior[i]);
+				}
+			}
+		}
+		for(int i=0;i<l.size();i++){
+			System.out.println(l.get(i)+"\n");
+		}
+		return l;
+	}
+	
+	public static void main(String[] args){
+		//closed_form_linear_regression();
+		//array_combine();
+		reservior_sampling();
+	}
+}

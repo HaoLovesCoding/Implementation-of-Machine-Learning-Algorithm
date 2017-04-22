@@ -1,0 +1,9 @@
+package Test;
+import DecisionTree.DecisionTree;
+public class Test {
+    public void main(String[] args) throws Exception {
+    	System.out.println("Hello");
+    	DecisionTree dt = new DecisionTree();
+        dt.decisionTree();
+    }
+}

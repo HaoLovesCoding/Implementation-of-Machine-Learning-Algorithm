@@ -1,0 +1,16 @@
+import Jama.Matrix;
+public class Jama_warm_up {
+	static public void test(){
+		double[][] val1 = {{1.,2.},{4.,5.}};
+		double[][] val2 = {{6.,2.},{1.,3.}};
+		Matrix A=new Matrix(val1);
+		Matrix B=new Matrix(val2);
+		Matrix C=A.times(B);
+		C.print(null, 2);
+		System.out.println(A.get(0,1));
+	}
+	public static void main(String[] args){
+		test();
+		
+	}
+}

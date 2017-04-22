@@ -1,0 +1,11 @@
+import Jama.Matrix;
+public class Jama_warm_up {
+	static public void test(){
+		double[][] vals = {{1.,2.,3},{4.,5.,6.},{7.,8.,10.}};
+		Matrix A=new Matrix(vals);
+		System.out.println(A.get(0,1));
+	}
+	public static void main(String[] args){
+		test();
+	}
+}

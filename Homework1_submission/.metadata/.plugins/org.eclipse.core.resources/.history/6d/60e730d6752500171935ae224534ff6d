@@ -1,0 +1,41 @@
+import java.io.*;
+import java.util.Enumeration;
+
+import DecisionTree.DecisionTree;
+import weka.core.Attribute;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.NoSupportForMissingValuesException;
+import weka.core.Utils;
+import Utility.Utility;
+
+public class DecisionTree {
+    //The node's successors.
+    private DecisionTree[] m_Successors;
+    //Attribute used for splitting.
+    private Attribute m_Attribute;
+    //Class value if node is leaf.
+    private double m_ClassValue;
+    //Class distribution if node is leaf.
+    private double[] m_Distribution;
+    // Class attribute of data set.
+    private Attribute m_ClassAttribute;
+    
+    public DecisionTree() {
+    }
+    
+    public void decisionTree() throws Exception {
+        BufferedReader file = Utility.readFile("/Users/HaoWu/Documents/Code/CS249_17S_Sun/HW1_Programming/DataMiningAlgorithms/data/decision_tree/weather-nominal.arff");
+        Instances data = new Instances(file);
+        int cIdx=data.numAttributes()-1;
+        data.setClassIndex(cIdx);
+        //buildClassifier(data);
+        //printOutput(data);
+    }   
+    
+    public static void main(String[] args) {
+    	DecisionTree dt = new DecisionTree();
+    	System.out.println("Hello");
+       // dt.decisionTree();
+    }
+}

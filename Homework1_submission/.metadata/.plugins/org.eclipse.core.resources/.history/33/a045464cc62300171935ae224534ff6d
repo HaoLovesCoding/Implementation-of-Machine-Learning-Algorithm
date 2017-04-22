@@ -1,0 +1,215 @@
+import Jama.Matrix;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class LinearRegressionTest {
+    public static final double alpha = 0.001; // Learning rate alpha
+    /*** Fill in other  constant variables here***/
+    
+    public static void linearRegression_1_1() throws Exception {
+        Matrix trainingData = MatrixData.getDataMatrix("/Users/HaoWu/Documents/Code/CS249_17S_Sun/HW1_Programming/DataMiningAlgorithms/data/linear_regression/2.csv");
+        // getMatrix(Initial row index, Final row index, Initial column index, Final column index)
+        Matrix train_x = trainingData.getMatrix(0, trainingData.getRowDimension()-1, 0, trainingData.getColumnDimension()-2);
+        train_x=matrix_combine(train_x);
+        Matrix train_y = trainingData.getMatrix(0, trainingData.getRowDimension()-1, trainingData.getColumnDimension()-1, trainingData.getColumnDimension()-1);
+        
+        Matrix testData = MatrixData.getDataMatrix("/Users/HaoWu/Documents/Code/CS249_17S_Sun/HW1_Programming/DataMiningAlgorithms/data/linear_regression/2.csv");
+        Matrix test_x = testData.getMatrix(0, testData.getRowDimension() - 1, 0, testData.getColumnDimension() - 2);
+        Matrix test_y = testData.getMatrix(0, trainingData.getRowDimension()-1, trainingData.getColumnDimension()-1, trainingData.getColumnDimension()-1);
+        test_x=matrix_combine(test_x);
+        
+        /* Linear Regression */
+        /* 2 step process */
+        // 1) find beta
+        Matrix beta = getBeta(train_x, train_y);
+        // 2) predict y for test data using beta calculated from train data
+        
+        Matrix predictedY = test_x.times(beta);
+
+        // Output
+        printOutput(predictedY,"/Users/HaoWu/Documents/Code/CS249_17S_Sun/HW1_Programming/DataMiningAlgorithms/data/linear_regression/HW1_1_1.txt");
+
+        Matrix beta2 = getBetaBatchGradient(train_x, train_y);
+        // 2) predict y for test data using beta calculated from train data
+        
+        Matrix predictedY2 = test_x.times(beta);
+
+        // Output
+        printOutput(predictedY,"/Users/HaoWu/Documents/Code/CS249_17S_Sun/HW1_Programming/DataMiningAlgorithms/data/linear_regression/HW1_1_2.txt");        
+
+    }
+    
+    public static void linearRegression() throws Exception {
+        Matrix trainingData = MatrixData.getDataMatrix("/Users/HaoWu/Documents/Code/CS249_17S_Sun/HW1_Programming/DataMiningAlgorithms/data/linear_regression/linear-regression-train.csv");
+        // getMatrix(Initial row index, Final row index, Initial column index, Final column index)
+        Matrix train_x = trainingData.getMatrix(0, trainingData.getRowDimension()-1, 0, trainingData.getColumnDimension()-2);
+        train_x=matrix_combine(train_x);
+        Matrix train_y = trainingData.getMatrix(0, trainingData.getRowDimension()-1, trainingData.getColumnDimension()-1, trainingData.getColumnDimension()-1);
+        
+        Matrix testData = MatrixData.getDataMatrix("/Users/HaoWu/Documents/Code/CS249_17S_Sun/HW1_Programming/DataMiningAlgorithms/data/linear_regression/linear-regression-test.csv");
+        Matrix test_x = testData.getMatrix(0, testData.getRowDimension() - 1, 0, testData.getColumnDimension() - 2);
+        Matrix test_y = testData.getMatrix(0, trainingData.getRowDimension()-1, trainingData.getColumnDimension()-1, trainingData.getColumnDimension()-1);
+        test_x=matrix_combine(test_x);
+
+        Matrix beta = getBeta(train_x, train_y);
+
+        Matrix predictedY = test_x.times(beta);
+
+        printOutput(predictedY,"/Users/HaoWu/Documents/Code/CS249_17S_Sun/HW1_Programming/DataMiningAlgorithms/data/linear_regression/closed_form.txt");
+        
+        Matrix beta2 = getBetaBatchGradient(train_x, train_y);
+        // 2) predict y for test data using beta calculated from train data
+        
+        Matrix predictedY2 = test_x.times(beta);
+
+        // Output
+        printOutput(predictedY,"/Users/HaoWu/Documents/Code/CS249_17S_Sun/HW1_Programming/DataMiningAlgorithms/data/linear_regression/gradient_descent.txt");        
+    }
+    
+	static public Matrix matrix_combine(Matrix m){		
+		double[][] valx=m.getArray();
+		int dimension1=valx.length;
+		int dimension2=valx[0].length;
+		double[][] transform=new double[dimension1][dimension2+1];
+		for(int i=0;i<dimension1;i++){
+			for(int j=0;j<dimension2+1;j++){
+				if(j!=0){
+					transform[i][j]=valx[i][j-1];
+				}
+				else{
+					transform[i][j]=1;
+				}
+			}
+		}
+		Matrix transformM=new Matrix(transform);
+		return transformM;
+	}
+    
+    public static Matrix getBeta(Matrix X, Matrix Y){
+		Matrix Beta= (X.transpose().times(X)).inverse().times(X.transpose()).times(Y);
+		Beta.print(4, 2);
+		return Beta;
+    }
+    
+    public static void test(){
+		double[][] valx={{3.},{5.},{6}};
+		double[][] valy={{6},{10},{12}};
+		Matrix X=new Matrix(valx);
+		X=matrix_combine(X);// X will be three vectors {} {} {}
+		Matrix Y=new Matrix(valy);
+		getBetaBatchGradient(X,Y);
+    }
+    
+    public static Matrix getBetaBatchGradient(Matrix X, Matrix Y){
+    	Matrix beta=new Matrix(X.getColumnDimension(),1,0);// beta needs to match column
+    	Matrix beta_prev=null;
+    	int count=0;
+    	do{
+    		beta_prev=beta;
+    		beta=beta.minus(GD_derivative(beta,X,Y,0.00001));
+    		count++;
+    		//double x_times_beta=X.transpose().times(X);
+    	}while(continue_condition(beta_prev,beta,0.001) && count<2000);
+    	System.out.print("final beta");
+    	beta.print(5,4);
+    	return beta;
+    }
+	
+    public static Boolean continue_condition(Matrix beta_prev, Matrix beta, double diff_percent){
+    	double diff_norm=beta_prev.minus(beta).normF();
+    	double beta_norm=beta.normF();
+		//System.out.print("beta_prev");
+		//beta_prev.print(5,4);
+		//System.out.print("beta");
+		//beta.print(5,4);
+		System.out.print("ratio\n");
+		System.out.print(diff_norm/beta_norm);
+    	if(diff_norm<diff_percent*beta_norm){
+    		return false;
+    	}
+    	else{
+    		return true;
+    	}
+    }
+    
+	public static Matrix GD_derivative(Matrix beta,Matrix X,Matrix Y,double learning_rate){
+		Matrix diff=X.times(beta).minus(Y);
+		//System.out.print("diff");
+		//diff.print(5, 4);
+		Matrix dJdbeta_result=X.transpose().times(diff);
+		return dJdbeta_result.times(learning_rate);
+	}
+    
+	public static void GD_derivative_scratch(Matrix beta,Matrix Y){
+		double[][] valx={{3.},{5.},{6}};
+		double[][] valy={{6},{10},{12}};
+		Matrix X=new Matrix(valx);
+		X=matrix_combine(X);// X will be three vectors {} {} {}
+		Y=new Matrix(valy);
+		double[][] beta_a={{0},{1}};
+		beta=new Matrix(beta_a);
+		
+		Matrix diff=X.times(beta).minus(Y);
+		System.out.print("diff");
+		diff.print(4,1);
+		System.out.print("X_transpose");
+		X.transpose().print(4,1);
+		Matrix before_sum=element_times(X.transpose(),diff);// element_times, is to multiply the matrix by the difference vector
+		System.out.print("before_sum");
+		before_sum.print(4,1);
+		Matrix sum_mat=add_by_column(before_sum);
+		System.out.print("sum_amat");
+		sum_mat.print(4,1);
+		
+		Matrix dJdbeta_result=X.transpose().times(diff);
+		System.out.print("dJdbeta_result");
+		dJdbeta_result.print(4,1);
+	}
+
+	
+	public static Matrix element_times(Matrix A, Matrix B){
+		double [][] result=A.getArray();
+		double [][] multiplier=B.getArray();
+		for(int i=0;i<A.getRowDimension();i++){
+			for(int j=0;j<A.getColumnDimension();j++){
+				result[i][j]*=multiplier[j][0];
+			}
+		}
+		Matrix res_mat=new Matrix(result);
+		return res_mat;
+	}
+	
+	public static Matrix add_by_column(Matrix A){
+		int column=A.getColumnDimension();
+		int row=A.getRowDimension();
+		double[][] A_array=A.getArray();
+		double[][] result=new double[row][1];
+		for(int i=0;i<row;i++){
+			int sum=0;
+			for(int j=0;j<column;j++){
+				sum+=A_array[i][j];
+			}
+			result[i][0]=sum;
+		}
+		Matrix res=new Matrix(result);
+		return res;
+	}
+    
+    public static void printOutput(Matrix predictedY, String path) throws IOException {
+        FileWriter fStream = new FileWriter(path);     // Output File
+        BufferedWriter out = new BufferedWriter(fStream);
+        for (int row =0; row<predictedY.getRowDimension(); row++) {
+            out.write(String.valueOf(predictedY.get(row, 0)));
+            out.newLine();
+        }
+        out.close();
+    }
+    
+    public static void main(String[] args) throws Exception{
+    	//GD_derivative_scratch(null,null);
+    	linearRegression();
+    	//linearRegression();
+    }
+}
